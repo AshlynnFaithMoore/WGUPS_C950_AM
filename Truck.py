@@ -11,11 +11,26 @@ class Truck:
         self.depart_time = depart_time
         self.time = depart_time
 
-    def add_package(self, packageID):
-        if len(self.packages) < self.capacity:
-            self.packages.append(packageID)
-        else:
+
+    def add_package(self, package_id, package_table):
+    # Look up the actual package object
+        package = package_table.lookup(package_id)
+
+        if package is None:
+            print(f"Warning: No package found for ID {package_id}")
+            return None
+
+        if len(self.packages) >= self.capacity:
             print("Package capacity exceeded")
+            return None
+
+    # Prevent duplicates
+        if package in self.packages:
+            print(f"Package {package_id} is already on the truck.")
+            return None
+
+        self.packages.append(package)
+        return package
 
     def update_mileage(self, mileage):
         travel_time = timedelta(hours= mileage / self.speed)

@@ -1,21 +1,21 @@
 # defines what each Package object looks like
 class Package:
-    def __init__(self, package_id, address, deadline, city, zipcode, weight, notes, status = "At Hub"):
+    def __init__(self, package_id, address, city, state, zipcode, weight, deadline, status = "At Hub"):
         self.package_id = package_id
         self.address = address
-        self.deadline = deadline
         self.city = city
+        self.state = state
         self.zipcode = zipcode
         self.weight = weight
-        self.notes = notes
+        self.deadline = deadline
         self.status = status # default status given
         self.delivery_time = None # to be updated
         self.departure_time = None # to be updated
 
     # print out to screen in order
     def __str__(self):
-        return (f"ID: {self.package_id}, Address: {self.address}, City: {self.deadline}, State: {self.city}, "
-                f"Zip: {self.zipcode}, Deadline: {self.weight}, Weight: {self.notes}, "
+        return (f"ID: {self.package_id}, Address: {self.address}, City: {self.city}, State: {self.state}, "
+                f"Zip: {self.zipcode}, Weight: {self.weight}, Deadline: {self.deadline}, Status: {self.status}, "
                 f"Delivery Time: {self.delivery_time}, Departure Time: {self.departure_time}, Status: {self.status}")
 
     # changes the package status based on time
