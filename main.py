@@ -1,69 +1,191 @@
 # Student ID: 012054004
 
-from datetime import timedelta
+from datetime import timedelta, datetime
 from Truck import Truck
 from HashTable import HashTable
 from data_loader import read_package_file, read_distance_file
 from nearest_neighbor import deliver_packages
 
 def main():
+    """
+
+        Main function to initialize and run the WGUPS package delivery system.
+        Loads package data, creates trucks, assigns packages, delivers them using
+        nearest neighbor algorithm, and provides user interface for status queries.
+        """
     filename = './WGUPS_CSV/Package_File.csv'
-    #load info for trucks
+    #loading the package information into the Hashtable for trucks
     package_table = HashTable() # empty hashtable
     read_package_file(filename, package_table)
+    # loading distance information for routing
     distance_data, address_list = read_distance_file('./WGUPS_CSV/Distance_table.csv')
     print("Address List:", address_list)
 
     # trucks should now be able to be initialized
+    # truck1 departs at 8AM
     truck1 = Truck(capacity=16, speed=18, address= 'HUB', depart_time=timedelta(hours=8))
+    #truck2 departs at 9:05 to account for the late packages
     truck2 = Truck(capacity=16, speed=18, address= 'HUB', depart_time=timedelta(hours=9, minutes=5))
-    truck3 = Truck(capacity=16, speed=18, address= 'HUB', depart_time=timedelta(hours=11))
+    # truck3 departs at 10:20 when one truck returns (only 2 drivers)
+    truck3 = Truck(capacity=16, speed=18, address= 'HUB', depart_time=timedelta(hours=10, minutes=20))
 
-    # Assign packages
+    # Assign packages - manually
+    # - Packages with early deadlines go on truck 1
+    # - Packages delayed until 9:05 and with "truck 2 only" constraint go on truck 2
+    # - Remaining packages get distributed to truck 3
 
-    for i in range(1, 9): # 8 packages
-        truck1.add_package(i, package_table)
+    truck1_packages = [1, 13, 14, 15, 16, 20, 29, 30, 31, 34, 37, 40]
+    for pkg_id in truck1_packages:
+        truck1.add_package(pkg_id, package_table)
+        package = package_table.lookup(pkg_id)
+        if package:
+            package.departure_time = truck1.depart_time
 
-    for i in range(9, 17): # 18 packages
-        truck2.add_package(i, package_table)
+    truck2_packages = [3, 6, 18, 25, 28, 32, 36, 38, 2, 4, 5, 7, 8, 10]
+    for pkg_id in truck2_packages:
+        truck2.add_package(pkg_id, package_table)
+        package = package_table.lookup(pkg_id)
+        if package:
+            package.departure_time = truck2.depart_time
 
-    for i in range(17, 21):
-        truck3.add_package(i, package_table)
+    truck3_packages = [9, 11, 12, 17, 19, 21, 22, 23, 24, 26, 27, 33, 35, 39]
+    for pkg_id in truck3_packages:
+        truck3.add_package(pkg_id, package_table)
+        package = package_table.lookup(pkg_id)
+        if package:
+            package.departure_time = truck3.depart_time
 
 
-    truck1.add_package(1, package_table)
-    truck1.add_package(13, package_table)
-    truck1.add_package(14, package_table)
-    truck1.add_package(15, package_table)
-    truck1.add_package(16, package_table)
-    truck1.add_package(20, package_table)
-    truck1.add_package(21, package_table)
-    truck1.add_package(29, package_table)
-    truck1.add_package(30, package_table)
-
-    truck2.add_package(2, package_table)
-    truck2.add_package(3, package_table)
-    truck2.add_package(4, package_table)
-    truck2.add_package(5, package_table)
-    truck2.add_package(6, package_table)
-    truck2.add_package(7, package_table)
-    truck2.add_package(8, package_table)
-    truck2.add_package(9, package_table)
-
-    truck3.add_package(10, package_table)
-    truck3.add_package(11, package_table)
-    truck3.add_package(12, package_table)
-    truck3.add_package(17, package_table)
-    truck3.add_package(18, package_table)
-    truck3.add_package(19, package_table)
-    truck3.add_package(21, package_table)
-    truck3.add_package(22, package_table)
-
+    # Deliver packages using nearest neighbor algorithm
     deliver_packages(truck1, package_table, distance_data, address_list)
     deliver_packages(truck2, package_table, distance_data, address_list)
     deliver_packages(truck3, package_table, distance_data, address_list)
 
+    # Calculate total mileage across all trucks
     total_mileage = truck1.mileage + truck2.mileage + truck3.mileage
+    print("Delivery Complete")
+    print(f"Truck 1 Mileage: {truck1.mileage:.2f} miles")
+    print(f"Truck 2 Mileage: {truck2.mileage:.2f} miles")
+    print(f"Truck 3 Mileage: {truck3.mileage:.2f} miles")
+    print(f"Total Mileage: {total_mileage:.2f} miles\n")
+
+    user_interface(package_table, total_mileage)
+
+
+def user_interface(package_table, total_mileage):
+    """
+        Provides an interactive command-line interface for users per instructions to:
+        1. View status of a single package at a specific time
+        2. View status of all packages at a specific time
+        3. View total mileage
+        4. Exit the program
+    """
+    print("Welcome to the WGUPS package delivery system.")
+    print("How may we assist you today?")
+    while True:
+        print("\n--- Please select one of the following options: ---")
+        print("1. Check status of a single package")
+        print("2. Check status of all packages")
+        print("3. View total mileage")
+        print("4. Exit")
+
+        choice = input("\nEnter your choice here: ").strip()
+
+        if choice == '1':
+            try:
+                pkg_id = int(input("Enter package ID (1-40): "))
+                if pkg_id < 1 or pkg_id > 40:
+                    print("Invalid package ID. Please enter a number between 1 and 40.")
+                    continue
+
+                hours = int(input("Enter hour (0-23): "))
+                minutes = int(input("Enter minutes (0-59): "))
+                check_time = timedelta(hours=hours, minutes=minutes)
+
+                package = package_table.lookup(pkg_id)
+
+                if package:
+                    display_package_status(package, check_time)
+                else:
+                    print(f"Package {pkg_id} not found.")
+
+            except ValueError:
+                print("Invalid input. Please enter valid numbers.")
+
+        elif choice == '2':
+            print("\nSelect a time range to check:")
+            print("  A. Between 8:35 AM and 9:25 AM")
+            print("  B. Between 9:35 AM and 10:25 AM")
+            print("  C. Between 12:03 PM and 1:12 PM")
+
+            time_choice = input("\nEnter your choice (A, B, or C): ").strip().upper()
+
+            if time_choice == 'A':
+                check_time = timedelta(hours=9, minutes=0)
+                time_label = "9:00 AM (8:35 AM - 9:25 AM range)"
+            elif time_choice == 'B':
+                check_time = timedelta(hours=10, minutes=0)
+                time_label = "10:00 AM (9:35 AM - 10:25 AM range)"
+            elif time_choice == 'C':
+                check_time = timedelta(hours=12, minutes=30)
+                time_label = "12:30 PM (12:03 PM - 1:12 PM range)"
+            else:
+                print("Invalid choice. Please select A, B, or C.")
+                continue
+
+            print(f"\nSTATUS OF ALL PACKAGES AT {time_label}")
+
+            print("\n--- TRUCK 1 PACKAGES ---")
+            truck1_ids = [1, 13, 14, 15, 16, 20, 29, 30, 31, 34, 37, 40]
+            for pkg_id in truck1_ids:
+                package = package_table.lookup(pkg_id)
+                if package:
+                    display_package_status(package, check_time)
+
+            print("\n--- TRUCK 2 PACKAGES ---")
+            truck2_ids = [3, 6, 18, 25, 28, 32, 36, 38, 2, 4, 5, 7, 8, 10]
+            for pkg_id in truck2_ids:
+                package = package_table.lookup(pkg_id)
+                if package:
+                    display_package_status(package, check_time)
+
+            print("\n--- TRUCK 3 PACKAGES ---")
+            truck3_ids = [9, 11, 12, 17, 19, 21, 22, 23, 24, 26, 27, 33, 35, 39]
+            for pkg_id in truck3_ids:
+                package = package_table.lookup(pkg_id)
+                if package:
+                    display_package_status(package, check_time)
+
+        elif choice == '3':
+            print(f"\nTotal mileage for all three trucks: {total_mileage:.2f} miles")
+
+        elif choice == '4':
+            print("\nThank you for using WGUPS Package Tracking System!")
+            break
+
+        else:
+            print("Invalid choice. Please enter 1, 2, 3, or 4.")
+
+
+
+def display_package_status(package, check_time):
+    if package.delivery_time and check_time >= package.delivery_time:
+        status = "Delivered"
+        time_info = f"Delivered at: {package.delivery_time}"
+    elif package.departure_time and check_time >= package.departure_time:
+        status = "En Route"
+        time_info = f"Departed at: {package.departure_time}"
+    else:
+        status = "At Hub"
+        time_info = f"Departs at: {package.departure_time if package.departure_time else 'Not scheduled'}"
+        # Display package information
+    print(f"Package ID: {package.package_id}")
+    print(f"Address: {package.address}, {package.city}, {package.state} {package.zipcode}")
+    print(f"Deadline: {package.deadline}")
+    print(f"Weight: {package.weight} kg")
+    print(f"Status: {status}")
+    print(f"{time_info}")
+    print()
 
 
 if __name__ == "__main__":
