@@ -25,11 +25,11 @@ class Truck:
             return None
 
     # Prevent duplicates
-        if package in self.packages:
+        if package_id in self.packages:
             print(f"Package {package_id} is already on the truck.")
             return None
 
-        self.packages.append(package)
+        self.packages.append(package_id)
         return package
 
     def update_mileage(self, mileage):

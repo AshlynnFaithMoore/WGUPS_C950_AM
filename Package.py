@@ -1,13 +1,13 @@
 # defines what each Package object looks like
 class Package:
-    def __init__(self, package_id, address, city, state, zipcode, weight, deadline, status = "At Hub"):
+    def __init__(self, package_id, address, city, state, zipcode, deadline, weight, status="At Hub"):
         self.package_id = package_id
         self.address = address
         self.city = city
         self.state = state
         self.zipcode = zipcode
-        self.weight = weight
         self.deadline = deadline
+        self.weight = weight
         self.status = status # default status given
         self.delivery_time = None # to be updated
         self.departure_time = None # to be updated

@@ -1,6 +1,26 @@
 import csv
 from Package import Package
 
+def clean_address(address):
+    if '(' in address:
+        address = address.split('(')[0].strip()
+
+    # Replace newlines with spaces
+    address = address.replace('\n', ' ').strip()
+
+    # Standardize directional abbreviations
+    replacements = {
+        ' South ': ' S ',
+        ' North ': ' N ',
+        ' East ': ' E ',
+        ' West ': ' W ',
+    }
+
+    for old, new in replacements.items():
+        address = address.replace(old, new)
+
+    return address
+
 def read_package_file(filename, p_hash):
     with open(filename, "r", encoding="utf-8-sig") as file:
         reader = csv.reader(file, delimiter=",")
@@ -9,15 +29,14 @@ def read_package_file(filename, p_hash):
 
             print(row)
 
-            package_id = int(row[0])  # convert to integer for consistency
-            address = row[1].replace('\n', ' ').strip() # bug fixed: stripping /n
+            package_id = int(row[0])  # Convert to integer for consistency
+            address = clean_address(row[1])  # Normalize address format
             city = row[2].strip()
             state = row[3].strip()
             zipcode = row[4].strip()
-            deadline = row[5].strip()
+            deadline = row[5].strip()  # Note: deadline comes before weight in CSV
             weight = row[6].strip()
-            status = row[7].strip()
-            package = Package(package_id, address, city, state, zipcode, deadline, weight, status) #unpack row
+            package = Package(package_id, address, city, state, zipcode, deadline, weight) #unpack row
             p_hash.insert(package.package_id, package)
             print(f"Loaded package {package_id}: {address}")#package id is the key, the rest is the value (object)
 
@@ -28,8 +47,9 @@ def read_distance_file(filename):
         reader = csv.reader(file, delimiter=",")
         next(reader)
         for row in reader:
-            address = row[1].replace('\n', ' ').strip() #fix /n
+            address = clean_address(row[1])
             addresses.append(address)
+
             print(row)
             row_distances = []
 

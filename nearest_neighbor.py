@@ -43,6 +43,12 @@ def deliver_packages(truck, package_hash, distance_data, address_list):
         nearest_package.delivery_time = truck.time
         truck.packages.remove(nearest_package.package_id)
         print(f"Delivered package {nearest_package.package_id} at {truck.time}")
+    return_distance = get_distance(distance_data, address_list, current_address, 'HUB')
+    truck.update_mileage(return_distance)
+    truck.address = 'HUB'
+
+    print(f"Truck returned to HUB at {truck.time}")
+    print(f"Total mileage for this truck: {truck.mileage:.2f} miles\n")
 
 
 
