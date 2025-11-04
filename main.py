@@ -61,7 +61,7 @@ def main():
     deliver_packages(truck2, package_table, distance_data, address_list)
     deliver_packages(truck3, package_table, distance_data, address_list)
 
-    # Calculate total mileage across all trucks
+    # Calculate total mileage across all trucks for customer display
     total_mileage = truck1.mileage + truck2.mileage + truck3.mileage
     print("Delivery Complete")
     print(f"Truck 1 Mileage: {truck1.mileage:.2f} miles")
@@ -82,6 +82,7 @@ def user_interface(package_table, total_mileage):
     """
     print("Welcome to the WGUPS package delivery system.")
     print("How may we assist you today?")
+    # Main menu loop - continues until user exits
     while True:
         print("\n--- Please select one of the following options: ---")
         print("1. Check status of a single package")
@@ -89,7 +90,14 @@ def user_interface(package_table, total_mileage):
         print("3. View total mileage")
         print("4. Exit")
 
+        # store user input in variable
         choice = input("\nEnter your choice here: ").strip()
+
+        # Single package status:
+            # gets singular package ID - validity check
+            # gets exact time
+            # looks up package ID in hashtable O(1)
+            # Displays the status if there is one, else gives error response
 
         if choice == '1':
             try:
@@ -111,6 +119,11 @@ def user_interface(package_table, total_mileage):
 
             except ValueError:
                 print("Invalid input. Please enter valid numbers.")
+
+        # Presents package statuses in three specific time ranges as required by rubric
+            # user picks pre-curated time range - stored in variable
+            # picked mid-points for my time for all ranges
+            # # Display packages organized by truck per rubric
 
         elif choice == '2':
             print("\nSelect a time range to check:")
@@ -156,9 +169,10 @@ def user_interface(package_table, total_mileage):
                 if package:
                     display_package_status(package, check_time)
 
+        # displays total mileage by all trucks
         elif choice == '3':
             print(f"\nTotal mileage for all three trucks: {total_mileage:.2f} miles")
-
+        # exits with goodbye message
         elif choice == '4':
             print("\nThank you for using WGUPS Package Tracking System!")
             break
@@ -169,6 +183,16 @@ def user_interface(package_table, total_mileage):
 
 
 def display_package_status(package, check_time):
+    """
+    Display detailed package information and status at a specified time.
+
+    Determines package status by comparing check_time with departure_time
+    and delivery_time.
+
+    """
+
+    # Determine package status based on time comparisons
+
     if package.delivery_time and check_time >= package.delivery_time:
         status = "Delivered"
         time_info = f"Delivered at: {package.delivery_time}"
@@ -177,8 +201,9 @@ def display_package_status(package, check_time):
         time_info = f"Departed at: {package.departure_time}"
     else:
         status = "At Hub"
+        # Displays scheduled departure time if available
         time_info = f"Departs at: {package.departure_time if package.departure_time else 'Not scheduled'}"
-        # Display package information
+    # Display package information with status/time info
     print(f"Package ID: {package.package_id}")
     print(f"Address: {package.address}, {package.city}, {package.state} {package.zipcode}")
     print(f"Deadline: {package.deadline}")

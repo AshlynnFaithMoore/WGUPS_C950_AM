@@ -1,12 +1,30 @@
 # creating a hashmap w/o libraries
 class HashTable:
-    # constructor
+    """
+        Custom hash table implementation using chaining for collision resolution.
+
+    Time Complexity:
+        - Insert: O(1) average case, O(n) worst case (all items hash to same bucket)
+        - Lookup: O(1) average case, O(n) worst case
+        - Delete: O(1) average case, O(n) worst case
+
+    Space Complexity: O(n) where n is the number of items stored
+    """
+
     def __init__(self, size = 20):
+        # initializing the hashtable with 20 buckets or empty lists
         self.list = []
         for i in range(size):
-            self.list.append([]) #using buckets to support collision chaining
+            self.list.append([])
 
     def insert(self, key, value):
+        """
+        Inserts a key-value pair into the hash table.
+
+        If the key already exists, its value is updated. Otherwise, a new
+        key-value pair is added to the appropriate bucket.
+
+        """
         bucket = hash(key) % len(self.list)
         bucket_list = self.list[bucket]
         for keyval in bucket_list:
@@ -19,6 +37,10 @@ class HashTable:
         return True
 
     def lookup(self, key):
+        """
+        Checks if the key exists in the hash table. If it does, returns value associated with key.
+        Otherwise, returns None.
+        """
         bucket = hash(key) % len(self.list)
         bucket_list = self.list[bucket]
         for pair in bucket_list:
@@ -27,6 +49,11 @@ class HashTable:
         return None
 
     def hash_remove(self, key):
+        """
+        Removes a key from the hash table.
+        If the key does not exist, returns False.
+
+        """
         slot = hash(key) % len(self.list)
         bucket_list = self.list[slot]
         for pair in bucket_list:
