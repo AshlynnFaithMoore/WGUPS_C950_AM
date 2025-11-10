@@ -43,7 +43,7 @@ def read_package_file(filename, p_hash):
             print(row)
 
             package_id = int(row[0])  # Convert to integer for consistency
-            address = clean_address(row[1])  # Normalize address format
+            address = clean_address(row[1])  # Normalize address format - fixes previous bug
             city = row[2].strip()
             state = row[3].strip()
             zipcode = row[4].strip()

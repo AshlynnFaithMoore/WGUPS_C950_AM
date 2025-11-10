@@ -32,7 +32,7 @@ class Package:
     # print out to screen in order
     def __str__(self):
         """
-        Returns a human-readable string representation of the package I'm using to debug.
+        Returns a human-readable string representation of the package i'm using to debug.
         """
 
         return (f"ID: {self.package_id}, Address: {self.address}, City: {self.city}, State: {self.state}, "

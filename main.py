@@ -13,12 +13,13 @@ def main():
         Loads package data, creates trucks, assigns packages, delivers them using
         nearest neighbor algorithm, and provides user interface for status queries.
         """
-    filename = './WGUPS_CSV/Package_File.csv'
+    package_filename = './WGUPS_CSV/Package_File.csv'
+    distance_filename = './WGUPS_CSV/Distance_table.csv'
     #loading the package information into the Hashtable for trucks
     package_table = HashTable() # empty hashtable
-    read_package_file(filename, package_table)
+    read_package_file(package_filename, package_table)
     # loading distance information for routing
-    distance_data, address_list = read_distance_file('./WGUPS_CSV/Distance_table.csv')
+    distance_data, address_list = read_distance_file(distance_filename)
     print("Address List:", address_list)
 
     # trucks should now be able to be initialized
@@ -28,6 +29,16 @@ def main():
     truck2 = Truck(capacity=16, speed=18, address= 'HUB', depart_time=timedelta(hours=9, minutes=5))
     # truck3 departs at 10:20 when one truck returns (only 2 drivers)
     truck3 = Truck(capacity=16, speed=18, address= 'HUB', depart_time=timedelta(hours=10, minutes=20))
+
+    # Handle special constraint: Package 9 has wrong address until 10:20 AM
+    # CSV contains "300 State St" but correct address is "410 S State St"
+    # Since truck 3 departs at 10:20, we update the address now (simulating the correction)
+    package_9 = package_table.lookup(9)
+    if package_9:
+        package_9.address = "410 S State St"
+        package_9.city = "Salt Lake City"
+        package_9.state = "UT"
+        package_9.zipcode = "84111"
 
     # Assign packages - manually
     # - Packages with early deadlines go on truck 1
@@ -122,7 +133,7 @@ def user_interface(package_table, total_mileage):
 
         # Presents package statuses in three specific time ranges as required by rubric
             # user picks pre-curated time range - stored in variable
-            # picked mid-points for my time for all ranges
+            # picked mid-points for my time for all ranges - easy to track
             # # Display packages organized by truck per rubric
 
         elif choice == '2':
@@ -192,8 +203,16 @@ def display_package_status(package, check_time):
     """
 
     # Determine package status based on time comparisons
+    # Special handling for delayed packages (6, 25, 28, 32)
+    # These don't arrive at hub until 9:05 AM - technically not at HUB
+    delayed_packages = [6, 25, 28, 32]
+    delayed_arrival = timedelta(hours=9, minutes=5)
 
-    if package.delivery_time and check_time >= package.delivery_time:
+    if package.package_id in delayed_packages and check_time < delayed_arrival:
+        status = "Delayed on Flight"
+        time_info = f"Arriving at hub at: {delayed_arrival}"
+
+    elif package.delivery_time and check_time >= package.delivery_time:
         status = "Delivered"
         time_info = f"Delivered at: {package.delivery_time}"
     elif package.departure_time and check_time >= package.departure_time:
@@ -203,7 +222,7 @@ def display_package_status(package, check_time):
         status = "At Hub"
         # Displays scheduled departure time if available
         time_info = f"Departs at: {package.departure_time if package.departure_time else 'Not scheduled'}"
-    # Display package information with status/time info
+    # Display package information with status/time info per rubric
     print(f"Package ID: {package.package_id}")
     print(f"Address: {package.address}, {package.city}, {package.state} {package.zipcode}")
     print(f"Deadline: {package.deadline}")

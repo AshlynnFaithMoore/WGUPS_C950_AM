@@ -12,7 +12,7 @@ def get_distance(distance_table , address_list, address1, address2):
     1. Find index of address1 in address_list
     2. Find index of address2 in address_list
     3. Check distance_table[i][j]
-    4. If it's 0.0, check distance_table[j][i] instead
+    4. If it's 0, check distance_table[j][i] instead per rubric
     5. Return the non-zero distance
 
     """
